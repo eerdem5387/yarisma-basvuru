@@ -84,4 +84,3 @@ if (process.env.NODE_ENV === 'development' && !process.env.AUTH_SECRET && !proce
   console.warn('   AUTH_SECRET="your-secret-key-here"')
   console.warn('   veya şunu çalıştırın: npm run generate-secret')
 }
-
