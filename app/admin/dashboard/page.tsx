@@ -57,15 +57,18 @@ export default function AdminDashboard() {
   const fetchBasvurular = async () => {
     try {
       setIsLoading(true)
+      setError(null)
       const response = await fetch('/api/admin/basvurular')
       
       if (!response.ok) {
-        throw new Error('Başvurular yüklenemedi')
+        const errorData = await response.json().catch(() => ({ error: 'Bilinmeyen hata' }))
+        throw new Error(errorData.error || `HTTP ${response.status}: Başvurular yüklenemedi`)
       }
       
       const data = await response.json()
       setBasvurular(data)
     } catch (error) {
+      console.error('Fetch error:', error)
       setError(error instanceof Error ? error.message : 'Bir hata oluştu')
     } finally {
       setIsLoading(false)

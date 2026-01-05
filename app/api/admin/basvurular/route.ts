@@ -33,8 +33,15 @@ export async function GET() {
       }
     }
     
+    // Daha detaylı hata mesajı (development için)
+    const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata"
+    console.error("Detaylı hata:", errorMessage)
+    
     return NextResponse.json(
-      { error: "Başvurular getirilirken bir hata oluştu" },
+      { 
+        error: "Başvurular getirilirken bir hata oluştu",
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
       { status: 500 }
     )
   }
