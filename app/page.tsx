@@ -266,17 +266,11 @@ const okullar = [
 ]
 
 const siniflar = [
-  '4. Sınıf',
-  '5. Sınıf',
-  '6. Sınıf',
-  '7. Sınıf',
-  '8. Sınıf',
   '9. Sınıf',
   '10. Sınıf',
   '11. Sınıf',
+  '12. Sınıf',
 ]
-
-const subeler = Array.from({ length: 26 }, (_, index) => String.fromCharCode(65 + index))
 
 const meslekler = [
   'Acil Tıp Teknisyeni',
@@ -410,6 +404,7 @@ export default function HomePage() {
   const [veliIzinOnay, setVeliIzinOnay] = useState(false)
   const [telifHaklariOnay, setTelifHaklariOnay] = useState(false)
   const [acikRizaOnay, setAcikRizaOnay] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   const {
     register,
@@ -447,12 +442,22 @@ export default function HomePage() {
     setSubmitError(null)
 
     try {
+      // FormData oluştur (dosya yükleme için)
+      const formData = new FormData()
+      
+      // Form verilerini ekle
+      Object.keys(data).forEach((key) => {
+        formData.append(key, (data as any)[key])
+      })
+      
+      // Dosya varsa ekle
+      if (selectedFile) {
+        formData.append('dosya', selectedFile)
+      }
+
       const response = await fetch('/api/basvuru', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        body: formData,
       })
 
       const result = await response.json()
@@ -474,6 +479,7 @@ export default function HomePage() {
       setVeliIzinOnay(false)
       setTelifHaklariOnay(false)
       setAcikRizaOnay(false)
+      setSelectedFile(null)
 
       // 5 saniye sonra success mesajını kaldır
       setTimeout(() => {
@@ -606,7 +612,6 @@ export default function HomePage() {
                           'ogrenciTc': 'TC Kimlik No',
                           'okul': 'Okul',
                           'ogrenciSinifi': 'Sınıf',
-                          'ogrenciSube': 'Sınıf Şubesi',
                           'babaAdSoyad': 'Baba Ad Soyad',
                           'babaMeslek': 'Baba Meslek',
                           'babaIsAdresi': 'Baba İş Adresi',
@@ -703,26 +708,6 @@ export default function HomePage() {
                   </select>
                   {errors.ogrenciSinifi && (
                     <p className="mt-1 text-sm text-red-600">{errors.ogrenciSinifi.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Sınıf Şubesi <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    {...register('ogrenciSube')}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
-                  >
-                    <option value="">Seçiniz</option>
-                    {subeler.map((sube) => (
-                      <option key={sube} value={sube}>
-                        {sube} Şubesi
-                      </option>
-                    ))}
-                  </select>
-                  {errors.ogrenciSube && (
-                    <p className="mt-1 text-sm text-red-600">{errors.ogrenciSube.message}</p>
                   )}
                 </div>
 
@@ -1175,13 +1160,111 @@ export default function HomePage() {
                   </p>
                 )}
               </div>
+
+              {/* Kompozisyon Dosyası Yükleme */}
+              <div className="mb-6 p-6 bg-indigo-50 rounded-xl border-2 border-indigo-200">
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    "FÜTÜRİSTİK DÜŞÜNME" Temalı Kompozisyon Dosyası <span className="text-red-500">*</span>
+                  </label>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Lütfen kompozisyon dosyanızı yükleyiniz. (PDF, Word veya PowerPoint formatı, maksimum 1MB)
+                  </p>
+                  <div className="mt-4">
+                    <label
+                      htmlFor="dosya-upload"
+                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-indigo-300 rounded-lg cursor-pointer bg-white hover:bg-indigo-50 transition-colors"
+                    >
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg
+                          className="w-10 h-10 mb-3 text-indigo-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                          />
+                        </svg>
+                        <p className="mb-2 text-sm text-gray-500">
+                          <span className="font-semibold">Dosya seçmek için tıklayın</span> veya sürükleyip bırakın
+                        </p>
+                        <p className="text-xs text-gray-500">PDF, DOC, DOCX, PPTX (MAX. 1MB)</p>
+                      </div>
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            // Dosya boyutu kontrolü (1MB)
+                            if (file.size > 1 * 1024 * 1024) {
+                              setSubmitError({ message: 'Dosya boyutu 1MB\'dan büyük olamaz.' })
+                              e.target.value = ''
+                              return
+                            }
+                            // Dosya tipi kontrolü
+                            const allowedTypes = [
+                              'application/pdf',
+                              'application/msword',
+                              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                              'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+                            ]
+                            const allowedExtensions = ['.pdf', '.doc', '.docx', '.pptx']
+                            const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase()
+                            
+                            if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+                              setSubmitError({ message: 'Sadece PDF, Word (.doc, .docx) veya PowerPoint (.pptx) dosyaları yüklenebilir.' })
+                              e.target.value = ''
+                              return
+                            }
+                            setSelectedFile(file)
+                            setSubmitError(null)
+                          }
+                        }}
+                        className="hidden"
+                        id="dosya-upload"
+                      />
+                    </label>
+                    {selectedFile && (
+                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="text-sm font-medium text-gray-700">{selectedFile.name}</span>
+                            <span className="text-xs text-gray-500">
+                              ({(selectedFile.size / 1024).toFixed(2)} KB)
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedFile(null)
+                              const input = document.getElementById('dosya-upload') as HTMLInputElement
+                              if (input) input.value = ''
+                            }}
+                            className="text-red-600 hover:text-red-700 text-sm font-medium"
+                          >
+                            Kaldır
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </section>
 
             {/* Submit Button */}
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={isSubmitting || !kvkkOnay || !aydinlatmaMetniOnay || !veliIzinOnay || !telifHaklariOnay || !acikRizaOnay}
+                disabled={isSubmitting || !kvkkOnay || !aydinlatmaMetniOnay || !veliIzinOnay || !telifHaklariOnay || !acikRizaOnay || !selectedFile}
                 className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 px-6 rounded-lg font-semibold text-lg shadow-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (

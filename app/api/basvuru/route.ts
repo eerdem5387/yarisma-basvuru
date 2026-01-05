@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { basvuruSchema } from "@/lib/validations"
 import { z } from "zod"
+import { put } from "@vercel/blob"
 
 // Rate limiting için basit bir in-memory cache
 const rateLimit = new Map<string, { count: number; resetTime: number }>()
@@ -39,10 +40,70 @@ export async function POST(request: Request) {
       )
     }
 
-    const body = await request.json()
+    // FormData parse et
+    const formData = await request.formData()
+    
+    // Form verilerini topla
+    const formDataObj: any = {}
+    formData.forEach((value, key) => {
+      if (key !== 'dosya') {
+        formDataObj[key] = value.toString()
+      }
+    })
     
     // Validasyon
-    const validatedData = basvuruSchema.parse(body)
+    const validatedData = basvuruSchema.parse(formDataObj)
+    
+      // Dosya yükleme işlemi (Vercel Blob Storage)
+      let dosyaUrl: string | null = null
+      let dosyaAdi: string | null = null
+      
+      const dosya = formData.get('dosya') as File | null
+      if (dosya && dosya.size > 0) {
+        // Dosya boyutu kontrolü (1MB)
+        if (dosya.size > 1 * 1024 * 1024) {
+          return NextResponse.json(
+            { error: "Dosya boyutu 1MB'dan büyük olamaz." },
+            { status: 400 }
+          )
+        }
+        
+        // Dosya tipi kontrolü
+        const allowedTypes = [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+        ]
+        const allowedExtensions = ['.pdf', '.doc', '.docx', '.pptx']
+        const fileExtensionCheck = '.' + dosya.name.split('.').pop()?.toLowerCase()
+        
+        if (!allowedTypes.includes(dosya.type) && !allowedExtensions.includes(fileExtensionCheck)) {
+          return NextResponse.json(
+            { error: "Sadece PDF, Word (.doc, .docx) veya PowerPoint (.pptx) dosyaları yüklenebilir." },
+            { status: 400 }
+          )
+        }
+        
+        // Dosya adını oluştur (TC + timestamp + orijinal uzantı)
+        const timestamp = Date.now()
+        const fileExtension = dosya.name.split('.').pop() || 'pdf'
+        dosyaAdi = `${validatedData.ogrenciTc}_${timestamp}.${fileExtension}`
+        const blobPath = `kompozisyonlar/${dosyaAdi}`
+        
+        // Vercel Blob Storage'a yükle
+        const blob = await put(blobPath, dosya, {
+          access: 'public',
+          contentType: dosya.type || 'application/pdf',
+        })
+        
+        dosyaUrl = blob.url
+      } else {
+        return NextResponse.json(
+          { error: "Kompozisyon dosyası yüklenmesi zorunludur." },
+          { status: 400 }
+        )
+      }
     
     // Telefon numaraları zaten 10 hane olarak geliyor (frontend'de kontrol ediliyor)
     const babaCepTel = validatedData.babaCepTel
@@ -66,6 +127,8 @@ export async function POST(request: Request) {
         ...validatedData,
         babaCepTel,
         anneCepTel,
+        dosyaUrl,
+        dosyaAdi,
       }
     })
     

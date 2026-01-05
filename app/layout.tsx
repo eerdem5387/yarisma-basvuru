@@ -8,6 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
   title: "Yarışma Başvuru Formu",
   description: "Yarışmaya katılmak için başvuru formunu doldurunuz",
   openGraph: {

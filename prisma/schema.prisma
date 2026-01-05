@@ -13,7 +13,6 @@ model Basvuru {
   ogrenciTc        String   @unique
   okul             String
   ogrenciSinifi    String
-  ogrenciSube      String   @default("Belirtilmedi")
   babaAdSoyad      String
   babaMeslek       String
   babaIsAdresi     String   @default("")
@@ -23,6 +22,8 @@ model Basvuru {
   anneIsAdresi     String   @default("")
   anneCepTel       String
   email            String
+  dosyaUrl         String?
+  dosyaAdi         String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

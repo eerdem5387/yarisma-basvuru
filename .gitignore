@@ -44,3 +44,6 @@ prisma/migrations/*.sql
 *.swo
 *~
 
+# Uploaded files
+public/uploads/
+

@@ -56,7 +56,6 @@ export async function GET(request: Request) {
       'TC Kimlik No': b.ogrenciTc,
       'Okul': b.okul,
       'Sınıf': b.ogrenciSinifi,
-      'Şube': b.ogrenciSube,
       'Baba Ad Soyad': b.babaAdSoyad,
       'Baba Meslek': b.babaMeslek,
       'Baba İş Adresi': b.babaIsAdresi || '-',
@@ -66,6 +65,7 @@ export async function GET(request: Request) {
       'Anne İş Adresi': b.anneIsAdresi || '-',
       'Anne Cep Tel': b.anneCepTel,
       'E-posta': b.email,
+      'Kompozisyon Dosyası': b.dosyaUrl || '-',
       'Başvuru Tarihi': new Date(b.createdAt).toLocaleString('tr-TR'),
     }))
     

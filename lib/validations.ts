@@ -40,9 +40,6 @@ export const basvuruSchema = z.object({
   ogrenciSinifi: z.string()
     .min(1, "Sınıf seçimi zorunludur"),
   
-  ogrenciSube: z.string()
-    .min(1, "Şube seçimi zorunludur"),
-  
   babaAdSoyad: z.string()
     .min(3, "Baba adı soyadı en az 3 karakter olmalıdır")
     .max(100, "Baba adı soyadı en fazla 100 karakter olabilir")
