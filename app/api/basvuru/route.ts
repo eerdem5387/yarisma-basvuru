@@ -102,8 +102,16 @@ export async function POST(request: Request) {
     }
     
     console.error("Başvuru hatası:", error)
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    })
     return NextResponse.json(
-      { error: "Başvuru kaydedilirken bir hata oluştu. Lütfen tekrar deneyiniz." },
+      { 
+        error: "Başvuru kaydedilirken bir hata oluştu. Lütfen tekrar deneyiniz.",
+        details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined
+      },
       { status: 500 }
     )
   }
