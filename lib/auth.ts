@@ -72,7 +72,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session
     }
   },
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  secret: (() => {
+    const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET
+    if (!secret) {
+      console.error('❌ CRITICAL: AUTH_SECRET or NEXTAUTH_SECRET is not set!')
+      console.error('   Please set AUTH_SECRET or NEXTAUTH_SECRET in your environment variables.')
+      console.error('   For Vercel: Go to Settings → Environment Variables')
+      throw new Error('AUTH_SECRET or NEXTAUTH_SECRET must be set')
+    }
+    return secret
+  })(),
   debug: process.env.NODE_ENV === 'development',
   trustHost: true, // Vercel için gerekli
 })
