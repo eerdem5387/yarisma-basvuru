@@ -406,6 +406,10 @@ export default function HomePage() {
   const [babaMeslekSearch, setBabaMeslekSearch] = useState('')
   const [anneMeslekSearch, setAnneMeslekSearch] = useState('')
   const [kvkkOnay, setKvkkOnay] = useState(false)
+  const [aydinlatmaMetniOnay, setAydinlatmaMetniOnay] = useState(false)
+  const [veliIzinOnay, setVeliIzinOnay] = useState(false)
+  const [telifHaklariOnay, setTelifHaklariOnay] = useState(false)
+  const [acikRizaOnay, setAcikRizaOnay] = useState(false)
 
   const {
     register,
@@ -465,6 +469,11 @@ export default function HomePage() {
       reset()
       setBabaMeslekSearch('')
       setAnneMeslekSearch('')
+      setKvkkOnay(false)
+      setAydinlatmaMetniOnay(false)
+      setVeliIzinOnay(false)
+      setTelifHaklariOnay(false)
+      setAcikRizaOnay(false)
 
       // 5 saniye sonra success mesajını kaldır
       setTimeout(() => {
@@ -1001,11 +1010,178 @@ export default function HomePage() {
               )}
             </div>
 
+            {/* Yarışma Onay Belgeleri */}
+            <section className="pt-6 pb-4 border-t-2 border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 pb-2 border-b-2 border-indigo-500">
+                Yarışma Onay Belgeleri
+              </h2>
+              <p className="text-sm text-gray-600 mb-6">
+                Lütfen aşağıdaki belgeleri okuyunuz ve her birini ayrı ayrı onaylayınız. Tüm onaylar tamamlanmadan başvuru yapılamaz.
+              </p>
+
+              {/* AYDINLATMA METNİ */}
+              <div className="mb-6 p-6 bg-blue-50 rounded-xl border-2 border-blue-200">
+                <div className="mb-4">
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">EK-1: AYDINLATMA METNİ</h3>
+                  <div className="bg-white p-4 rounded-lg border border-blue-200 text-sm text-gray-700 max-h-60 overflow-y-auto">
+                    <p className="mb-3">
+                      <strong>"FÜTÜRİSTİK DÜŞÜNME"</strong> temalı kompozisyon yarışması kapsamında tarafımıza ilettiğiniz
+                      size ve {watch('ogrenciAdSoyad') || 'öğrencinize'} ait tüm kişisel veriler bahse konu yarışma süresince gerekli kimlik
+                      doğrulatmalarını yapmak, eser değerlendirme sürecini yürütmek, dereceye giren eserleri ilan etmek,
+                      ödül töreni ile ilgili organizasyonları yapmak, eser basım, yayım, paylaşım ve iletim süreçlerini
+                      gerçekleştirmek, gerekli hâllerde tarafınıza ulaşmak amacıyla kullanılacak olup hukuki
+                      durumlarda ilgili makamlarca talep edilmesine bağlı olarak gerekli paylaşımların yapılması dışında
+                      üçüncü kişilerle asla paylaşılmayacak ve etkinliğin tüm süreçlerinin sona ermesinin ardından resen
+                      silinecektir.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="checkbox"
+                    id="aydinlatmaMetniOnay"
+                    checked={aydinlatmaMetniOnay}
+                    onChange={(e) => setAydinlatmaMetniOnay(e.target.checked)}
+                    className="mt-1 h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2 cursor-pointer"
+                  />
+                  <label htmlFor="aydinlatmaMetniOnay" className="flex-1 text-sm text-gray-700 cursor-pointer">
+                    <span className="text-red-500 font-semibold">*</span> Aydınlatma Metnini okudum, anladım ve onaylıyorum.
+                  </label>
+                </div>
+                {!aydinlatmaMetniOnay && (
+                  <p className="mt-2 text-sm text-red-600">
+                    Bu belgeyi onaylamadan başvuru yapılamaz.
+                  </p>
+                )}
+              </div>
+
+              {/* VELİ İZİN BELGESİ */}
+              <div className="mb-6 p-6 bg-green-50 rounded-xl border-2 border-green-200">
+                <div className="mb-4">
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">EK-2: VELİ İZİN BELGESİ</h3>
+                  <div className="bg-white p-4 rounded-lg border border-green-200 text-sm text-gray-700 max-h-60 overflow-y-auto">
+                    <p className="mb-2"><strong>Katılımcının</strong></p>
+                    <p className="mb-1">Adı ve Soyadı: <strong className={watch('ogrenciAdSoyad') ? 'text-indigo-700' : 'text-gray-400'}>{watch('ogrenciAdSoyad') || '................................'}</strong></p>
+                    <p className="mb-1">Okulu: <strong className={watch('okul') ? 'text-indigo-700' : 'text-gray-400'}>{watch('okul') || '................................'}</strong></p>
+                    <p className="mb-3">Sınıfı: <strong className={watch('ogrenciSinifi') ? 'text-indigo-700' : 'text-gray-400'}>{watch('ogrenciSinifi') || '........'}</strong></p>
+                    <p className="mb-3">
+                      Velisi bulunduğum ve yukarıda açık kimliği yazılı oğlum/kızım <strong className={watch('ogrenciAdSoyad') ? 'text-indigo-700' : 'text-gray-400'}>{watch('ogrenciAdSoyad') || '................................'}</strong>'ın
+                      Levent Koleji tarafından düzenlenen <strong>"FÜTÜRİSTİK DÜŞÜNME"</strong> temalı kompozisyon
+                      yarışmasına katılmasına izin verdiğimi arz ederim.
+                    </p>
+                    <p className="mt-4 mb-1">Velisinin Adı ve Soyadı: <strong className={watch('babaAdSoyad') ? 'text-indigo-700' : 'text-gray-400'}>{watch('babaAdSoyad') || '................................'}</strong></p>
+                    <p className="mb-1">Tarih: <strong className="text-indigo-700">{new Date().toLocaleDateString('tr-TR')}</strong></p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="checkbox"
+                    id="veliIzinOnay"
+                    checked={veliIzinOnay}
+                    onChange={(e) => setVeliIzinOnay(e.target.checked)}
+                    className="mt-1 h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2 cursor-pointer"
+                  />
+                  <label htmlFor="veliIzinOnay" className="flex-1 text-sm text-gray-700 cursor-pointer">
+                    <span className="text-red-500 font-semibold">*</span> Veli İzin Belgesini okudum, anladım ve onaylıyorum.
+                  </label>
+                </div>
+                {!veliIzinOnay && (
+                  <p className="mt-2 text-sm text-red-600">
+                    Bu belgeyi onaylamadan başvuru yapılamaz.
+                  </p>
+                )}
+              </div>
+
+              {/* TELİF HAKLARI TAAHHÜTNAMESİ */}
+              <div className="mb-6 p-6 bg-purple-50 rounded-xl border-2 border-purple-200">
+                <div className="mb-4">
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">EK-3: TELİF HAKLARI TAAHHÜTNAMESİ</h3>
+                  <div className="bg-white p-4 rounded-lg border border-purple-200 text-sm text-gray-700 max-h-60 overflow-y-auto">
+                    <p className="mb-2"><strong>Katılımcının</strong></p>
+                    <p className="mb-1">Adı ve Soyadı: <strong className={watch('ogrenciAdSoyad') ? 'text-indigo-700' : 'text-gray-400'}>{watch('ogrenciAdSoyad') || '................................'}</strong></p>
+                    <p className="mb-1">Okulu: <strong className={watch('okul') ? 'text-indigo-700' : 'text-gray-400'}>{watch('okul') || '................................'}</strong></p>
+                    <p className="mb-3">Sınıfı: <strong className={watch('ogrenciSinifi') ? 'text-indigo-700' : 'text-gray-400'}>{watch('ogrenciSinifi') || '........'}</strong></p>
+                    <p className="mb-3">
+                      <strong>"FÜTÜRİSTİK DÜŞÜNME"</strong> temalı kompozisyon yarışması kapsamında tarafınıza iletilen eserin velisi
+                      bulunduğum ve yukarıda açık kimliği yazılı oğlum / kızım <strong className={watch('ogrenciAdSoyad') ? 'text-indigo-700' : 'text-gray-400'}>{watch('ogrenciAdSoyad') || '................................'}</strong>'a
+                      ait olduğunu, bahse konu eserin son halini gördüğümü ve onayladığımı, eserin başka bir yerde
+                      kullanılmadığını, eserin diğer şahıslara ait olan telif haklarını ihlal etmediğini, telif hakkı tarafımızda saklı
+                      kalmak koşuluyla eserin Levent Koleji tarafından yarışma faaliyetleri çerçevesinde oğlumun / kızımın
+                      ismine yer verilerek basılmasına, yayımlanmasına, paylaşılmasına, kurum internet sitesi ve sosyal medya
+                      hesaplarında sergilenmesine izin verdiğimi, eserin Levent Koleji arşivinde kalabileceğini, bu kapsamda
+                      herhangi bir maddi talebim olmayacağını kabul, beyan ve taahhüt ederim.
+                    </p>
+                    <p className="mt-4 mb-1">Velisinin Adı ve Soyadı: <strong className={watch('babaAdSoyad') ? 'text-indigo-700' : 'text-gray-400'}>{watch('babaAdSoyad') || '................................'}</strong></p>
+                    <p className="mb-1">Tarih: <strong className="text-indigo-700">{new Date().toLocaleDateString('tr-TR')}</strong></p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="checkbox"
+                    id="telifHaklariOnay"
+                    checked={telifHaklariOnay}
+                    onChange={(e) => setTelifHaklariOnay(e.target.checked)}
+                    className="mt-1 h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2 cursor-pointer"
+                  />
+                  <label htmlFor="telifHaklariOnay" className="flex-1 text-sm text-gray-700 cursor-pointer">
+                    <span className="text-red-500 font-semibold">*</span> Telif Hakları Taahhütnamesini okudum, anladım ve onaylıyorum.
+                  </label>
+                </div>
+                {!telifHaklariOnay && (
+                  <p className="mt-2 text-sm text-red-600">
+                    Bu belgeyi onaylamadan başvuru yapılamaz.
+                  </p>
+                )}
+              </div>
+
+              {/* AÇIK RIZA ONAYI */}
+              <div className="mb-6 p-6 bg-yellow-50 rounded-xl border-2 border-yellow-200">
+                <div className="mb-4">
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">EK-4: AÇIK RIZA ONAYI</h3>
+                  <div className="bg-white p-4 rounded-lg border border-yellow-200 text-sm text-gray-700 max-h-60 overflow-y-auto">
+                    <p className="mb-3">
+                      6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında iş bu şartnamede yer alan EK-1 Aydınlatma
+                      Metni ile tarafıma gerekli bilgilendirme yapılmıştır. Bu doğrultuda, işlendiği belirtilen bana ve
+                      <strong className={watch('okul') ? 'text-indigo-700' : 'text-gray-400'}> {watch('okul') || '................................'}</strong>&apos;nda öğrenim gören velisi bulunduğum
+                      <strong className={watch('ogrenciAdSoyad') ? 'text-indigo-700' : 'text-gray-400'}> {watch('ogrenciAdSoyad') || '................................'}</strong> adlı öğrenciye ait tüm kişisel verilerin <strong>&quot;FÜTÜRİSTİK DÜŞÜNME&quot;</strong> temalı
+                      kompozisyon yarışması kapsamındaki faaliyet / etkinliklerin kamuoyu ile paylaşımı ve tanıtımı amacıyla,
+                      Levent Koleji web siteleri ile sosyal medya hesaplarında paylaşılmasına
+                    </p>
+                    <p className="mb-2"><strong>Onay veriyorum……</strong></p>
+                    <p className="mb-1">Velisinin Adı Soyadı: <strong className={watch('babaAdSoyad') ? 'text-indigo-700' : 'text-gray-400'}>{watch('babaAdSoyad') || '................................'}</strong></p>
+                    <p className="mb-1">Cep: <strong className={watch('babaCepTel') ? 'text-indigo-700' : 'text-gray-400'}>{watch('babaCepTel') || '................................'}</strong></p>
+                    <p className="mb-2"><strong>Öğrencinin</strong></p>
+                    <p className="mb-1">Adı Soyadı: <strong className={watch('ogrenciAdSoyad') ? 'text-indigo-700' : 'text-gray-400'}>{watch('ogrenciAdSoyad') || '................................'}</strong></p>
+                    <p className="mb-1">Okulu: <strong className={watch('okul') ? 'text-indigo-700' : 'text-gray-400'}>{watch('okul') || '................................'}</strong></p>
+                    <p className="mb-1">Sınıfı: <strong className={watch('ogrenciSinifi') ? 'text-indigo-700' : 'text-gray-400'}>{watch('ogrenciSinifi') || '........'}</strong></p>
+                    <p className="mt-2">Tarih: <strong className="text-indigo-700">{new Date().toLocaleDateString('tr-TR')}</strong></p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="checkbox"
+                    id="acikRizaOnay"
+                    checked={acikRizaOnay}
+                    onChange={(e) => setAcikRizaOnay(e.target.checked)}
+                    className="mt-1 h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2 cursor-pointer"
+                  />
+                  <label htmlFor="acikRizaOnay" className="flex-1 text-sm text-gray-700 cursor-pointer">
+                    <span className="text-red-500 font-semibold">*</span> Açık Rıza Onayını okudum, anladım ve onaylıyorum.
+                  </label>
+                </div>
+                {!acikRizaOnay && (
+                  <p className="mt-2 text-sm text-red-600">
+                    Bu belgeyi onaylamadan başvuru yapılamaz.
+                  </p>
+                )}
+              </div>
+            </section>
+
             {/* Submit Button */}
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={isSubmitting || !kvkkOnay}
+                disabled={isSubmitting || !kvkkOnay || !aydinlatmaMetniOnay || !veliIzinOnay || !telifHaklariOnay || !acikRizaOnay}
                 className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 px-6 rounded-lg font-semibold text-lg shadow-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
