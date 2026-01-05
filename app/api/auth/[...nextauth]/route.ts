@@ -2,7 +2,7 @@ import { handlers } from "@/lib/auth"
 
 export const { GET, POST } = handlers
 
-// Enable debug logging in development
+// Enable debug logging
 if (process.env.NODE_ENV === 'development') {
   console.log('NextAuth handlers initialized')
   console.log('AUTH_SECRET:', process.env.AUTH_SECRET ? 'Set' : 'Missing')

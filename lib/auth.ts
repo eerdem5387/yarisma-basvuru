@@ -13,7 +13,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         try {
           if (!credentials?.email || !credentials?.password) {
-            throw new Error("Email ve şifre gerekli")
+            return null // NextAuth için null döndürmek daha güvenli
           }
 
           const admin = await prisma.admin.findUnique({
@@ -21,7 +21,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           })
 
           if (!admin) {
-            throw new Error("Geçersiz email veya şifre")
+            return null // Güvenlik için aynı mesaj
           }
 
           const isPasswordValid = await bcrypt.compare(
@@ -30,7 +30,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           )
 
           if (!isPasswordValid) {
-            throw new Error("Geçersiz email veya şifre")
+            return null // Güvenlik için aynı mesaj
           }
 
           return {
@@ -40,7 +40,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
         } catch (error) {
           console.error("Auth error:", error)
-          throw error
+          // Prisma hatalarını kontrol et
+          if (error && typeof error === 'object' && 'code' in error) {
+            if (error.code === 'P1001' || error.code === 'P1002') {
+              console.error("Database connection error during auth")
+            }
+          }
+          return null // Hata durumunda null döndür
         }
       }
     })
