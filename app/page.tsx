@@ -444,117 +444,110 @@ export default function HomePage() {
     if (!bilgilendirmeRef.current) return
 
     try {
+      // PDF için özel bir container oluştur (gradient'ler olmadan)
+      const pdfContainer = document.createElement('div')
+      pdfContainer.style.position = 'absolute'
+      pdfContainer.style.left = '-9999px'
+      pdfContainer.style.top = '0'
+      pdfContainer.style.width = bilgilendirmeRef.current.offsetWidth + 'px'
+      pdfContainer.style.backgroundColor = '#ffffff'
+      pdfContainer.style.padding = '20px'
+      document.body.appendChild(pdfContainer)
+
+      // Orijinal içeriği kopyala ve gradient'leri düz renklere çevir
+      const clone = bilgilendirmeRef.current.cloneNode(true) as HTMLElement
+      
+      // Tüm gradient class'larını kaldır ve düz renklerle değiştir
+      const replaceGradients = (element: HTMLElement) => {
+        // Class'ları kontrol et ve değiştir
+        if (element.className && typeof element.className === 'string') {
+          let className = element.className
+          let bgColor = ''
+          
+          // Gradient class'larını tespit et ve düz renklere çevir
+          if (className.includes('from-blue-50') && className.includes('to-indigo-50')) {
+            bgColor = '#eff6ff'
+            className = className.replace(/bg-gradient-to-[a-z-]+/g, '')
+            className = className.replace(/from-blue-50/g, '')
+            className = className.replace(/to-indigo-50/g, '')
+          } else if (className.includes('from-green-50') && className.includes('to-emerald-50')) {
+            bgColor = '#f0fdf4'
+            className = className.replace(/bg-gradient-to-[a-z-]+/g, '')
+            className = className.replace(/from-green-50/g, '')
+            className = className.replace(/to-emerald-50/g, '')
+          } else if (className.includes('from-purple-50') && className.includes('to-pink-50')) {
+            bgColor = '#faf5ff'
+            className = className.replace(/bg-gradient-to-[a-z-]+/g, '')
+            className = className.replace(/from-purple-50/g, '')
+            className = className.replace(/to-pink-50/g, '')
+          } else if (className.includes('from-yellow-50') && className.includes('to-orange-50')) {
+            bgColor = '#fefce8'
+            className = className.replace(/bg-gradient-to-[a-z-]+/g, '')
+            className = className.replace(/from-yellow-50/g, '')
+            className = className.replace(/to-orange-50/g, '')
+          } else if (className.includes('from-yellow-50') && className.includes('to-amber-50')) {
+            bgColor = '#fffbeb'
+            className = className.replace(/bg-gradient-to-[a-z-]+/g, '')
+            className = className.replace(/from-yellow-50/g, '')
+            className = className.replace(/to-amber-50/g, '')
+          } else if (className.includes('from-gray-50') && className.includes('to-slate-50')) {
+            bgColor = '#f9fafb'
+            className = className.replace(/bg-gradient-to-[a-z-]+/g, '')
+            className = className.replace(/from-gray-50/g, '')
+            className = className.replace(/to-slate-50/g, '')
+          } else if (className.includes('from-orange-50') && className.includes('to-amber-50')) {
+            bgColor = '#fff7ed'
+            className = className.replace(/bg-gradient-to-[a-z-]+/g, '')
+            className = className.replace(/from-orange-50/g, '')
+            className = className.replace(/to-amber-50/g, '')
+          }
+          
+          if (bgColor) {
+            element.className = className.trim()
+            element.style.backgroundColor = bgColor
+            element.style.backgroundImage = 'none'
+          }
+        }
+        
+        // Border renklerini düzelt
+        if (element.className && typeof element.className === 'string') {
+          const className = element.className
+          if (className.includes('border-blue-200')) {
+            element.style.borderColor = '#bfdbfe'
+          } else if (className.includes('border-green-200')) {
+            element.style.borderColor = '#bbf7d0'
+          } else if (className.includes('border-purple-200')) {
+            element.style.borderColor = '#e9d5ff'
+          } else if (className.includes('border-yellow-200')) {
+            element.style.borderColor = '#fef08a'
+          } else if (className.includes('border-gray-200')) {
+            element.style.borderColor = '#e5e7eb'
+          } else if (className.includes('border-orange-200')) {
+            element.style.borderColor = '#fed7aa'
+          }
+        }
+        
+        // Alt elementleri de işle
+        Array.from(element.children).forEach((child) => {
+          replaceGradients(child as HTMLElement)
+        })
+      }
+      
+      replaceGradients(clone)
+      pdfContainer.appendChild(clone)
+
       // HTML içeriğini canvas'a çevir
-      const canvas = await html2canvas(bilgilendirmeRef.current, {
+      const canvas = await html2canvas(pdfContainer, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        windowWidth: bilgilendirmeRef.current.scrollWidth,
-        windowHeight: bilgilendirmeRef.current.scrollHeight,
         allowTaint: false,
         foreignObjectRendering: false,
-        onclone: (clonedDoc) => {
-          // Tüm elementlerdeki gradient ve lab() renklerini düz renklere çevir
-          const allElements = clonedDoc.querySelectorAll('*')
-          allElements.forEach((el) => {
-            try {
-              const htmlEl = el as HTMLElement
-              
-              // Computed style'ı al
-              const originalStyle = window.getComputedStyle(htmlEl)
-              
-              // Class name'i güvenli bir şekilde al
-              let className = ''
-              if (typeof htmlEl.className === 'string') {
-                className = htmlEl.className
-              } else if (htmlEl.className && typeof htmlEl.className === 'object') {
-                // SVG elementleri için
-                className = (htmlEl.className as any).baseVal || ''
-              }
-              
-              // Background gradient'leri düz renklere çevir
-              if (originalStyle.backgroundImage && typeof originalStyle.backgroundImage === 'string' && originalStyle.backgroundImage.includes('gradient')) {
-                let bgColor = '#ffffff'
-                
-                if (typeof className === 'string') {
-                  if (className.includes('from-blue-50') || className.includes('to-indigo-50')) {
-                    bgColor = '#eff6ff'
-                  } else if (className.includes('from-green-50') || className.includes('to-emerald-50')) {
-                    bgColor = '#f0fdf4'
-                  } else if (className.includes('from-purple-50') || className.includes('to-pink-50')) {
-                    bgColor = '#faf5ff'
-                  } else if (className.includes('from-yellow-50') || className.includes('to-orange-50')) {
-                    bgColor = '#fefce8'
-                  } else if (className.includes('from-indigo-50')) {
-                    bgColor = '#eef2ff'
-                  } else if (className.includes('from-emerald-50')) {
-                    bgColor = '#ecfdf5'
-                  } else if (className.includes('from-pink-50')) {
-                    bgColor = '#fdf2f8'
-                  } else if (className.includes('from-orange-50')) {
-                    bgColor = '#fff7ed'
-                  } else if (className.includes('from-amber-50')) {
-                    bgColor = '#fffbeb'
-                  } else if (className.includes('from-slate-50')) {
-                    bgColor = '#f8fafc'
-                  } else if (className.includes('from-gray-50')) {
-                    bgColor = '#f9fafb'
-                  } else if (className.includes('blue')) {
-                    bgColor = '#eff6ff'
-                  } else if (className.includes('green')) {
-                    bgColor = '#f0fdf4'
-                  } else if (className.includes('purple')) {
-                    bgColor = '#faf5ff'
-                  } else if (className.includes('yellow')) {
-                    bgColor = '#fefce8'
-                  }
-                }
-                
-                htmlEl.style.backgroundImage = 'none'
-                htmlEl.style.backgroundColor = bgColor
-              }
-              
-              // Border color'ları da kontrol et ve düz renklere çevir
-              if (originalStyle.borderColor && typeof originalStyle.borderColor === 'string') {
-                const borderColor = originalStyle.borderColor
-                if (borderColor.includes('lab') || (borderColor.includes('rgb') && borderColor.includes('calc'))) {
-                  // Border rengini class'a göre belirle
-                  let borderColorValue = '#e5e7eb'
-                  
-                  if (typeof className === 'string') {
-                    if (className.includes('border-blue')) {
-                      borderColorValue = '#bfdbfe'
-                    } else if (className.includes('border-green')) {
-                      borderColorValue = '#bbf7d0'
-                    } else if (className.includes('border-purple')) {
-                      borderColorValue = '#e9d5ff'
-                    } else if (className.includes('border-yellow')) {
-                      borderColorValue = '#fef08a'
-                    }
-                  }
-                  
-                  htmlEl.style.borderColor = borderColorValue
-                }
-              }
-              
-              // Color property'sini de kontrol et
-              if (originalStyle.color && typeof originalStyle.color === 'string') {
-                const colorValue = originalStyle.color
-                if (colorValue.includes('lab') || (colorValue.includes('rgb') && colorValue.includes('calc'))) {
-                  // Text rengini koru, sadece lab() kullanmayan bir değere çevir
-                  if (typeof className === 'string' && !className.includes('text-')) {
-                    htmlEl.style.color = '#111827' // Default text color
-                  }
-                }
-              }
-            } catch (error) {
-              // Hata durumunda sessizce devam et
-              console.warn('PDF oluşturma sırasında element işlenirken hata:', error)
-            }
-          })
-        },
       })
+
+      // Geçici container'ı kaldır
+      document.body.removeChild(pdfContainer)
 
       // Canvas'ı görüntüye çevir
       const imgData = canvas.toDataURL('image/png', 1.0)
