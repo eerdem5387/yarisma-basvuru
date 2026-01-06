@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { basvuruSchema, type BasvuruFormData } from '@/lib/validations'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 
 const okullar = [
   // ARDEŞEN
@@ -405,6 +407,7 @@ export default function HomePage() {
   const [telifHaklariOnay, setTelifHaklariOnay] = useState(false)
   const [acikRizaOnay, setAcikRizaOnay] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const bilgilendirmeRef = useRef<HTMLDivElement>(null)
 
   const {
     register,
@@ -436,6 +439,63 @@ export default function HomePage() {
       meslek.toLowerCase().includes(anneMeslekSearch.toLowerCase())
     )
   }, [anneMeslekSearch])
+
+  const handleDownloadPDF = async () => {
+    if (!bilgilendirmeRef.current) return
+
+    try {
+      // HTML içeriğini canvas'a çevir
+      const canvas = await html2canvas(bilgilendirmeRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        windowWidth: bilgilendirmeRef.current.scrollWidth,
+        windowHeight: bilgilendirmeRef.current.scrollHeight,
+      })
+
+      // Canvas'ı görüntüye çevir
+      const imgData = canvas.toDataURL('image/png', 1.0)
+
+      // PDF oluştur
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = pdf.internal.pageSize.getHeight()
+      const imgWidth = canvas.width
+      const imgHeight = canvas.height
+      
+      // Görüntüyü PDF sayfa genişliğine göre ölçekle
+      const ratio = pdfWidth / imgWidth
+      const imgScaledWidth = pdfWidth
+      const imgScaledHeight = imgHeight * ratio
+
+      // İlk sayfayı ekle
+      let heightLeft = imgScaledHeight
+      let position = 0
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgScaledWidth, imgScaledHeight)
+      heightLeft -= pdfHeight
+
+      // Eğer içerik bir sayfadan uzunsa, yeni sayfalar ekle
+      while (heightLeft > 0) {
+        position = heightLeft - imgScaledHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', 0, position, imgScaledWidth, imgScaledHeight)
+        heightLeft -= pdfHeight
+      }
+
+      // PDF'i indir
+      pdf.save('yarisma-bilgilendirme.pdf')
+    } catch (error) {
+      console.error('PDF oluşturma hatası:', error)
+      setSubmitError({
+        message: 'PDF oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.'
+      })
+      setTimeout(() => {
+        setSubmitError(null)
+      }, 5000)
+    }
+  }
 
   const onSubmit = async (data: BasvuruFormData) => {
     setIsSubmitting(true)
@@ -547,6 +607,128 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* PDF İndirme Butonu */}
+        <div className="flex justify-end mb-6">
+          <button
+            onClick={handleDownloadPDF}
+            className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-red-700 hover:to-red-800 transition duration-200 shadow-lg"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Bilgileri PDF Olarak İndir
+          </button>
+        </div>
+
+        {/* Bilgilendirme Kutucukları */}
+        <div className="mb-8 space-y-6" id="bilgilendirme-kutucuklari" ref={bilgilendirmeRef}>
+
+          {/* 1. Eserlerde Aranacak Şartlar ve Başvuru */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 p-6 shadow-md">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-blue-300">
+              Madde-4: Eserlerde Aranacak Şartlar ve Başvuru
+            </h3>
+            <div className="bg-white p-5 rounded-lg border border-blue-200 text-sm text-gray-700 space-y-3">
+              <p className="mb-3">
+                Yarışma katılım koşulları aşağıda belirtilmiştir:
+              </p>
+              <ul className="space-y-2 list-disc list-inside">
+                <li>Her öğrenci bir eserle yarışmaya katılabilir.</li>
+                <li>Yapay zekâ destekli programlarla yazılmış, yardım alınmış, özgün olmayan çalışmalar ve şartnamede belirtilen hususlara uygun olmayan eserler değerlendirmeye alınmayacaktır.</li>
+                <li>Eserler Word formatında en az bir A4 tam sayfa ve en çok iki A4 tam sayfayı geçmeyecek şekilde hazırlanacaktır.</li>
+                <li>Eserler 12 punto büyüklüğünde Times New Roman yazı karakteri esas alınarak hazırlanacaktır.</li>
+                <li>Eserin daha önce bir yarışmaya katılmamış ve herhangi bir platformda yayımlanmamış/basılmamış olması gerekmektedir.</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* 2. Eserlerin Gönderilmesi */}
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 p-6 shadow-md">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-green-300">
+              Madde-5: Eserlerin Gönderilmesi
+            </h3>
+            <div className="bg-white p-5 rounded-lg border border-green-200 text-sm text-gray-700 space-y-3">
+              <p className="mb-3">
+                Yarışmaya Rize ilinden katılacak eserlerin gönderim koşulları aşağıda belirtilmiştir:
+              </p>
+              <ul className="space-y-2 list-disc list-inside">
+                <li><strong>Başvuru:</strong> yarisma.leventokullari.com başvuru adresine şahsen yapılacaktır.</li>
+                <li>Genel şartları ve katılım şartlarını taşımayan eserler değerlendirme dışı bırakılacaktır.</li>
+                <li>Genel şartları ve katılım şartlarını taşıyan eserler, değerlendirme ölçütleri tablosu doğrultusunda değerlendirilecektir.</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* 3. Eserlerin Değerlendirilmesi ve Ödüller */}
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 p-6 shadow-md">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-purple-300">
+              Madde-6: Eserlerin Değerlendirilmesi ve Ödüller
+            </h3>
+            <div className="bg-white p-5 rounded-lg border border-purple-200 text-sm text-gray-700 space-y-3">
+              <ul className="space-y-2 list-disc list-inside">
+                <li>Rize'den (resmi/özel) okullardan gelecek eserlerin değerlendirilmesi, Özel Rize Levent Koleji tarafından oluşturulacak eser inceleme komisyonu tarafından yapılacaktır.</li>
+                <li>Komisyonun değerlendirmesi sonucunda dereceye giren ve ödül almaya hak kazanan eser sahiplerine aşağıdaki ödüller verilecektir:</li>
+              </ul>
+              <div className="mt-4 space-y-2">
+                <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-3 rounded-lg border border-yellow-200">
+                  <p className="font-semibold text-gray-900">Birincilik Ödülü: <span className="text-yellow-700">1 gr altın</span></p>
+                </div>
+                <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-3 rounded-lg border border-gray-200">
+                  <p className="font-semibold text-gray-900">İkincilik Ödülü: <span className="text-gray-700">1 gr altın</span></p>
+                </div>
+                <div className="bg-gradient-to-r from-orange-50 to-amber-50 p-3 rounded-lg border border-orange-200">
+                  <p className="font-semibold text-gray-900">Üçüncülük Ödülü: <span className="text-orange-700">Kitap Seti</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Yarışma Takvimi */}
+          <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl border-2 border-yellow-200 p-6 shadow-md">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-yellow-300">
+              Madde-8: Yarışma Takvimi
+            </h3>
+            <div className="bg-white p-5 rounded-lg border border-yellow-200 text-sm text-gray-700">
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-100 rounded-full p-2 mt-0.5">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">Eserlerin Özel Rize Levent Kolejine gönderilmesi</p>
+                    <p className="text-gray-600">yarisma.leventokullari.com adresi üzerinden son gönderimi: <span className="font-bold text-red-600">23.01.2026</span></p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="bg-green-100 rounded-full p-2 mt-0.5">
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">Sonuçların açıklanması</p>
+                    <p className="text-gray-600"><span className="font-bold text-green-600">04.02.2026</span></p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="bg-purple-100 rounded-full p-2 mt-0.5">
+                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">Ödül töreni tarihi</p>
+                    <p className="text-gray-600"><span className="font-bold text-purple-600">06.02.2026</span></p>
+                    <p className="text-gray-600 mt-1">Tören Yeri: <span className="font-semibold">Levent Koleji Konferans Salonu</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Success Modal */}
         {submitSuccess && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
