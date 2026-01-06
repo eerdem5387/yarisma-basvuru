@@ -454,87 +454,149 @@ export default function HomePage() {
       pdfContainer.style.padding = '20px'
       document.body.appendChild(pdfContainer)
 
-      // Orijinal içeriği kopyala ve gradient'leri düz renklere çevir
+      // Orijinal içeriği kopyala
       const clone = bilgilendirmeRef.current.cloneNode(true) as HTMLElement
+      pdfContainer.appendChild(clone)
       
-      // Tüm gradient class'larını kaldır ve düz renklerle değiştir
-      const replaceGradients = (element: HTMLElement) => {
-        // Class'ları kontrol et ve değiştir
-        if (element.className && typeof element.className === 'string') {
-          let className = element.className
-          let bgColor = ''
+      // Container'ı DOM'a ekledikten sonra computed style'ları alabiliriz
+      // Tüm elementlerin computed style'larını al ve inline style olarak ayarla
+      const convertToInlineStyles = (element: HTMLElement) => {
+        try {
+          const computedStyle = window.getComputedStyle(element)
           
-          // Gradient class'larını tespit et ve düz renklere çevir
-          if (className.includes('from-blue-50') && className.includes('to-indigo-50')) {
-            bgColor = '#eff6ff'
-            className = className.replace(/bg-gradient-to-[a-z-]+/g, '')
-            className = className.replace(/from-blue-50/g, '')
-            className = className.replace(/to-indigo-50/g, '')
-          } else if (className.includes('from-green-50') && className.includes('to-emerald-50')) {
-            bgColor = '#f0fdf4'
-            className = className.replace(/bg-gradient-to-[a-z-]+/g, '')
-            className = className.replace(/from-green-50/g, '')
-            className = className.replace(/to-emerald-50/g, '')
-          } else if (className.includes('from-purple-50') && className.includes('to-pink-50')) {
-            bgColor = '#faf5ff'
-            className = className.replace(/bg-gradient-to-[a-z-]+/g, '')
-            className = className.replace(/from-purple-50/g, '')
-            className = className.replace(/to-pink-50/g, '')
-          } else if (className.includes('from-yellow-50') && className.includes('to-orange-50')) {
-            bgColor = '#fefce8'
-            className = className.replace(/bg-gradient-to-[a-z-]+/g, '')
-            className = className.replace(/from-yellow-50/g, '')
-            className = className.replace(/to-orange-50/g, '')
-          } else if (className.includes('from-yellow-50') && className.includes('to-amber-50')) {
-            bgColor = '#fffbeb'
-            className = className.replace(/bg-gradient-to-[a-z-]+/g, '')
-            className = className.replace(/from-yellow-50/g, '')
-            className = className.replace(/to-amber-50/g, '')
-          } else if (className.includes('from-gray-50') && className.includes('to-slate-50')) {
-            bgColor = '#f9fafb'
-            className = className.replace(/bg-gradient-to-[a-z-]+/g, '')
-            className = className.replace(/from-gray-50/g, '')
-            className = className.replace(/to-slate-50/g, '')
-          } else if (className.includes('from-orange-50') && className.includes('to-amber-50')) {
-            bgColor = '#fff7ed'
-            className = className.replace(/bg-gradient-to-[a-z-]+/g, '')
-            className = className.replace(/from-orange-50/g, '')
-            className = className.replace(/to-amber-50/g, '')
-          }
+          // Background color'ı kontrol et ve düz renge çevir
+          const bgImage = computedStyle.backgroundImage
+          const bgColor = computedStyle.backgroundColor
           
-          if (bgColor) {
-            element.className = className.trim()
-            element.style.backgroundColor = bgColor
+          if (bgImage && typeof bgImage === 'string' && bgImage.includes('gradient')) {
+            // Gradient varsa, class'a göre düz renk belirle
+            const className = typeof element.className === 'string' ? element.className : ''
+            let solidColor = '#ffffff'
+            
+            if (className.includes('from-blue-50') || className.includes('to-indigo-50')) {
+              solidColor = '#eff6ff'
+            } else if (className.includes('from-green-50') || className.includes('to-emerald-50')) {
+              solidColor = '#f0fdf4'
+            } else if (className.includes('from-purple-50') || className.includes('to-pink-50')) {
+              solidColor = '#faf5ff'
+            } else if (className.includes('from-yellow-50') || className.includes('to-orange-50')) {
+              solidColor = '#fefce8'
+            } else if (className.includes('from-yellow-50') || className.includes('to-amber-50')) {
+              solidColor = '#fffbeb'
+            } else if (className.includes('from-gray-50') || className.includes('to-slate-50')) {
+              solidColor = '#f9fafb'
+            } else if (className.includes('from-orange-50') || className.includes('to-amber-50')) {
+              solidColor = '#fff7ed'
+            }
+            
             element.style.backgroundImage = 'none'
+            element.style.backgroundColor = solidColor
+          } else if (bgColor && typeof bgColor === 'string' && (bgColor.includes('lab') || bgColor.includes('rgb') && bgColor.includes('calc'))) {
+            // lab() veya calc() içeren renkleri düz renge çevir
+            const className = typeof element.className === 'string' ? element.className : ''
+            let solidColor = '#ffffff'
+            
+            if (className.includes('blue')) {
+              solidColor = '#eff6ff'
+            } else if (className.includes('green')) {
+              solidColor = '#f0fdf4'
+            } else if (className.includes('purple')) {
+              solidColor = '#faf5ff'
+            } else if (className.includes('yellow')) {
+              solidColor = '#fefce8'
+            } else if (className.includes('gray') || className.includes('slate')) {
+              solidColor = '#f9fafb'
+            } else if (className.includes('orange')) {
+              solidColor = '#fff7ed'
+            }
+            
+            element.style.backgroundColor = solidColor
           }
-        }
-        
-        // Border renklerini düzelt
-        if (element.className && typeof element.className === 'string') {
-          const className = element.className
-          if (className.includes('border-blue-200')) {
-            element.style.borderColor = '#bfdbfe'
-          } else if (className.includes('border-green-200')) {
-            element.style.borderColor = '#bbf7d0'
-          } else if (className.includes('border-purple-200')) {
-            element.style.borderColor = '#e9d5ff'
-          } else if (className.includes('border-yellow-200')) {
-            element.style.borderColor = '#fef08a'
-          } else if (className.includes('border-gray-200')) {
-            element.style.borderColor = '#e5e7eb'
-          } else if (className.includes('border-orange-200')) {
-            element.style.borderColor = '#fed7aa'
+          
+          // Border color'ı kontrol et
+          const borderColor = computedStyle.borderColor
+          if (borderColor && typeof borderColor === 'string' && (borderColor.includes('lab') || (borderColor.includes('rgb') && borderColor.includes('calc')))) {
+            const className = typeof element.className === 'string' ? element.className : ''
+            let solidBorderColor = '#e5e7eb'
+            
+            if (className.includes('border-blue')) {
+              solidBorderColor = '#bfdbfe'
+            } else if (className.includes('border-green')) {
+              solidBorderColor = '#bbf7d0'
+            } else if (className.includes('border-purple')) {
+              solidBorderColor = '#e9d5ff'
+            } else if (className.includes('border-yellow')) {
+              solidBorderColor = '#fef08a'
+            } else if (className.includes('border-gray')) {
+              solidBorderColor = '#e5e7eb'
+            } else if (className.includes('border-orange')) {
+              solidBorderColor = '#fed7aa'
+            }
+            
+            element.style.borderColor = solidBorderColor
           }
+          
+          // Text color'ı kontrol et
+          const textColor = computedStyle.color
+          if (textColor && typeof textColor === 'string' && (textColor.includes('lab') || (textColor.includes('rgb') && textColor.includes('calc')))) {
+            // Text rengini koru ama lab() kullanmayan bir değere çevir
+            const className = typeof element.className === 'string' ? element.className : ''
+            if (!className.includes('text-')) {
+              element.style.color = '#111827'
+            } else {
+              // Class'a göre text rengi belirle
+              if (className.includes('text-blue')) {
+                element.style.color = '#3b82f6'
+              } else if (className.includes('text-green')) {
+                element.style.color = '#10b981'
+              } else if (className.includes('text-purple')) {
+                element.style.color = '#a855f7'
+              } else if (className.includes('text-yellow')) {
+                element.style.color = '#eab308'
+              } else if (className.includes('text-gray')) {
+                element.style.color = '#6b7280'
+              } else if (className.includes('text-red')) {
+                element.style.color = '#ef4444'
+              } else {
+                element.style.color = '#111827'
+              }
+            }
+          }
+          
+          // Diğer önemli stilleri koru
+          if (computedStyle.padding) element.style.padding = computedStyle.padding
+          if (computedStyle.margin) element.style.margin = computedStyle.margin
+          if (computedStyle.borderWidth) element.style.borderWidth = computedStyle.borderWidth
+          if (computedStyle.borderStyle) element.style.borderStyle = computedStyle.borderStyle
+          if (computedStyle.borderRadius) element.style.borderRadius = computedStyle.borderRadius
+          if (computedStyle.fontSize) element.style.fontSize = computedStyle.fontSize
+          if (computedStyle.fontWeight) element.style.fontWeight = computedStyle.fontWeight
+          if (computedStyle.fontFamily) element.style.fontFamily = computedStyle.fontFamily
+          if (computedStyle.textAlign) element.style.textAlign = computedStyle.textAlign
+          if (computedStyle.display) element.style.display = computedStyle.display
+          if (computedStyle.width && computedStyle.width !== 'auto') element.style.width = computedStyle.width
+          if (computedStyle.height && computedStyle.height !== 'auto') element.style.height = computedStyle.height
+          
+          // Class'ları kaldır (artık inline style var)
+          element.className = ''
+          
+          // Alt elementleri de işle
+          Array.from(element.children).forEach((child) => {
+            convertToInlineStyles(child as HTMLElement)
+          })
+        } catch (error) {
+          console.warn('Style dönüştürme hatası:', error)
         }
-        
-        // Alt elementleri de işle
-        Array.from(element.children).forEach((child) => {
-          replaceGradients(child as HTMLElement)
-        })
       }
       
-      replaceGradients(clone)
-      pdfContainer.appendChild(clone)
+      // Tüm elementleri işle
+      const allElements = pdfContainer.querySelectorAll('*')
+      allElements.forEach((el) => {
+        convertToInlineStyles(el as HTMLElement)
+      })
+      
+      // Container'ın kendisini de işle
+      convertToInlineStyles(pdfContainer)
 
       // HTML içeriğini canvas'a çevir
       const canvas = await html2canvas(pdfContainer, {
