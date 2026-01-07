@@ -855,7 +855,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900">Eserlerin Özel Rize Levent Kolejine gönderilmesi</p>
-                    <p className="text-gray-600">yarisma.leventokullari.com adresi üzerinden son gönderimi: <span className="font-bold text-red-600">23.01.2026</span></p>
+                    <p className="text-gray-600">yarisma.leventokullari.com adresi üzerinden son gönderimi: <span className="font-bold text-red-600">26.01.2026</span></p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
